@@ -69,13 +69,16 @@
     #gmail-render .action-buttons { margin-left: 56px; margin-top: 25px; display: flex; gap: 10px; }
     #gmail-render .btn-reply { border: 1px solid #747775; border-radius: 20px; padding: 8px 24px; font-size: 14px; font-weight: 500; color: #444746; background: white; cursor: pointer; display: flex; align-items: center; }
 
-    /* FORCE BACKGROUND COLORS TO PRINT ON IOS/SAFARI/CHROME */
+    /* === HIDE BROWSER HEADERS/FOOTERS AND FORCE COLORS TO PRINT === */
+    @page { margin: 0; } /* Removes default browser headers/footers like URLs and page numbers */
+    
     @media print {
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         body { background: white; padding: 0; display: block; }
         .left-panel, .header-actions { display: none !important; }
         .panel { box-shadow: none; border: none; padding: 0; margin: 0; }
         #preview-wrap { border: none; box-shadow: none; padding: 0; overflow: visible; }
+        #gmail-render { padding: 20mm !important; } /* Restores padding inside the PDF so content isn't cut off */
         #gmail-render .action-buttons { display: none !important; }
     }
 </style>
@@ -268,20 +271,11 @@
             if(i > 0) currentDate.setMinutes(currentDate.getMinutes() + Math.floor(Math.random() * 30) + 15);
             let timeStr = formatTimeForEmail(currentDate);
             let btn = (i === messages.length - 1) ? `<div class="action-buttons" data-html2canvas-ignore><button class="btn-reply"><span>&#8617;</span> Reply</button><button class="btn-reply"><span>&#8594;</span> Forward</button></div>` : '';
-            
-            // Generate a bulletproof Avatar (Image if uploaded, otherwise Base64 SVG)
-            let avtRender = '';
-            if (msg.sender.avatar) {
-                avtRender = `<img src="${msg.sender.avatar}" class="avatar">`;
-            } else {
-                let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="${msg.sender.color}" /><text x="50%" y="50%" text-anchor="middle" dy=".35em" fill="white" font-size="20" font-family="Arial, sans-serif" font-weight="500">${msg.sender.initial}</text></svg>`;
-                let b64 = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
-                avtRender = `<img src="${b64}" class="avatar">`;
-            }
+            let avt = msg.sender.avatar ? `<img src="${msg.sender.avatar}" class="avatar">` : `<div class="avatar" style="background-color: ${msg.sender.color};">${msg.sender.initial}</div>`;
 
             innerHTML += `
     <div class="email-item">
-        <div class="email-header">${avtRender}
+        <div class="email-header">${avt}
             <div class="meta-data">
                 <div class="sender-line"><div><span class="sender-name">${msg.sender.name}</span></div><div class="date-info">${timeStr} <span style="color:#dadce0;">★</span></div></div>
                 <div class="details-box">
@@ -290,6 +284,7 @@
                     <div class="detail-row"><span class="detail-label">date:</span><span class="detail-value">${timeStr}</span></div>
                     <div class="detail-row"><span class="detail-label">subject:</span><span class="detail-value">${i===0?subject:'Re: '+subject}</span></div>
                     <div class="detail-row"><span class="detail-label">mailed-by:</span><span class="detail-value">${msg.sender.email.split('@')[1]}</span></div>
+                    <div class="detail-row"><span class="detail-label">security:</span><span class="detail-value"><span style="color:#188038">Standard encryption (TLS)</span></span></div>
                 </div>
             </div>
         </div>
