@@ -13,8 +13,9 @@
     h2, h3 { margin-top: 0; color: #1a73e8; }
     .form-group { margin-bottom: 15px; }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #5f6368; }
-    input[type="text"], input[type="date"], input[type="time"], textarea { width: 100%; padding: 10px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px;}
-    textarea { resize: vertical; min-height: 300px; font-family: monospace; white-space: pre-wrap; }
+    input[type="text"], input[type="date"], input[type="time"], input[type="file"], textarea { width: 100%; padding: 10px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px;}
+    input[type="file"] { padding: 6px; font-size: 12px; background: #f8f9fa; cursor: pointer; }
+    textarea { resize: vertical; min-height: 250px; font-family: monospace; white-space: pre-wrap; }
     .row { display: flex; gap: 10px; }
     .row > div { flex: 1; }
     .person-card { border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #fafafa; border-left: 4px solid #1a73e8; }
@@ -61,6 +62,11 @@
             <div class="form-group"><label>Email</label><input type="text" id="p1-email" value="bobrewards1001@gmail.com"></div>
             <div class="form-group" style="flex: 0.3;"><label>Color</label><input type="color" id="p1-color" value="#1a73e8" style="height:40px; padding:2px;"></div>
         </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>Upload Profile Picture (Optional)</label>
+            <input type="file" id="p1-avatar-file" accept="image/*">
+            <input type="hidden" id="p1-avatar-base64">
+        </div>
     </div>
 
     <div class="person-card">
@@ -69,6 +75,11 @@
             <div class="form-group"><label>Exact Name in Script</label><input type="text" id="p2-name" value="Omoleye Favour"></div>
             <div class="form-group"><label>Email</label><input type="text" id="p2-email" value="omoleyefavour@gmail.com"></div>
             <div class="form-group" style="flex: 0.3;"><label>Color</label><input type="color" id="p2-color" value="#e91e63" style="height:40px; padding:2px;"></div>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>Upload Profile Picture (Optional)</label>
+            <input type="file" id="p2-avatar-file" accept="image/*">
+            <input type="hidden" id="p2-avatar-base64">
         </div>
     </div>
     
@@ -103,6 +114,28 @@ Got them, thanks!"></textarea>
 </div>
 
 <script>
+    // --- Image Upload to Base64 Logic ---
+    function setupImageUpload(inputId, hiddenId) {
+        document.getElementById(inputId).addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(readerEvent) {
+                    document.getElementById(hiddenId).value = readerEvent.target.result;
+                }
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById(hiddenId).value = '';
+            }
+        });
+    }
+
+    // Initialize the file upload listeners
+    setupImageUpload('p1-avatar-file', 'p1-avatar-base64');
+    setupImageUpload('p2-avatar-file', 'p2-avatar-base64');
+
+
+    // --- UI Toggles ---
     function toggleView(view) {
         if(view === 'preview') {
             document.getElementById('preview-container').style.display = 'block';
@@ -126,6 +159,7 @@ Got them, thanks!"></textarea>
                ", " + dateObj.toLocaleTimeString('en-US', {hour: 'numeric', minute:'2-digit'});
     }
 
+    // --- Core Generation Logic ---
     function generate() {
         const subject = document.getElementById('subject').value || "Project Discussion";
         
@@ -139,14 +173,16 @@ Got them, thanks!"></textarea>
             name: document.getElementById('p1-name').value.trim(),
             email: document.getElementById('p1-email').value.trim(),
             color: document.getElementById('p1-color').value,
-            initial: document.getElementById('p1-name').value.trim().charAt(0).toUpperCase()
+            initial: document.getElementById('p1-name').value.trim().charAt(0).toUpperCase(),
+            avatarBase64: document.getElementById('p1-avatar-base64').value
         };
         
         const p2 = {
             name: document.getElementById('p2-name').value.trim(),
             email: document.getElementById('p2-email').value.trim(),
             color: document.getElementById('p2-color').value,
-            initial: document.getElementById('p2-name').value.trim().charAt(0).toUpperCase()
+            initial: document.getElementById('p2-name').value.trim().charAt(0).toUpperCase(),
+            avatarBase64: document.getElementById('p2-avatar-base64').value
         };
 
         const scriptText = document.getElementById('chat-script').value;
@@ -243,10 +279,18 @@ Got them, thanks!"></textarea>
             // Clean up trailing <br> tags
             let cleanBody = msg.body.replace(/(<br>)+$/g, '');
 
+            // AVATAR RENDERER: Image if exists, otherwise colored circle
+            let avatarRender = '';
+            if (msg.sender.avatarBase64) {
+                avatarRender = `<img src="${msg.sender.avatarBase64}" class="avatar" style="object-fit: cover; background-color: #fff;" alt="${msg.sender.initial}">`;
+            } else {
+                avatarRender = `<div class="avatar" style="background-color: ${msg.sender.color};">${msg.sender.initial}</div>`;
+            }
+
             emailsHTML += `
     <div class="email-item">
         <div class="email-header">
-            <div class="avatar" style="background-color: ${msg.sender.color};">${msg.sender.initial}</div>
+            ${avatarRender}
             <div class="meta-data">
                 <div class="sender-line">
                     <div><span class="sender-name">${msg.sender.name}</span></div>
