@@ -13,8 +13,9 @@
     h2, h3 { margin-top: 0; color: #1a73e8; }
     .form-group { margin-bottom: 15px; }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #5f6368; }
-    input[type="text"], input[type="date"], input[type="time"], input[type="file"], textarea { width: 100%; padding: 10px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px;}
+    input[type="text"], input[type="date"], input[type="number"], input[type="file"], select, textarea { width: 100%; padding: 10px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px;}
     input[type="file"] { padding: 6px; font-size: 12px; background: #f8f9fa; cursor: pointer; }
+    .time-input { width: 70px !important; text-align: center; }
     textarea { resize: vertical; min-height: 250px; font-family: monospace; white-space: pre-wrap; }
     .row { display: flex; gap: 10px; }
     .row > div { flex: 1; }
@@ -62,7 +63,15 @@
         </div>
         <div class="form-group">
             <label>Start Time</label>
-            <input type="time" id="start-time" value="10:00">
+            <div style="display: flex; gap: 5px; align-items: center;">
+                <input type="number" id="start-hour" class="time-input" min="1" max="12" value="10" placeholder="HH">
+                <span style="font-weight: bold; color: #5f6368;">:</span>
+                <input type="number" id="start-minute" class="time-input" min="0" max="59" value="00" placeholder="MM">
+                <select id="start-ampm" style="padding: 9px; cursor: pointer;">
+                    <option value="AM" selected>AM</option>
+                    <option value="PM">PM</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -183,10 +192,19 @@ Got them, thanks!"></textarea>
     function generate() {
         const subject = document.getElementById('subject').value || "Project Discussion";
         
-        // Parse Start Date and Time
+        // Parse Start Date and Custom Time (Hour, Min, AM/PM)
         const startDateStr = document.getElementById('start-date').value;
-        const startTimeStr = document.getElementById('start-time').value;
-        let currentDate = new Date(`${startDateStr}T${startTimeStr}:00`);
+        let hr = parseInt(document.getElementById('start-hour').value) || 10;
+        let min = parseInt(document.getElementById('start-minute').value) || 0;
+        let ampm = document.getElementById('start-ampm').value;
+        
+        if (ampm === 'PM' && hr !== 12) hr += 12;
+        if (ampm === 'AM' && hr === 12) hr = 0;
+        
+        let hrStr = hr.toString().padStart(2, '0');
+        let minStr = min.toString().padStart(2, '0');
+
+        let currentDate = new Date(`${startDateStr}T${hrStr}:${minStr}:00`);
         if(isNaN(currentDate.getTime())) currentDate = new Date(); // fallback
         
         const p1 = {
