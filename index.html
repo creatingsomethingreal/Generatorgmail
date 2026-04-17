@@ -2,55 +2,80 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Bulk Gmail Thread Generator (Pro)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Gmail Thread Generator (Stable)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 <style>
-    /* UI STYLES FOR THE GENERATOR APP */
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; display: flex; gap: 20px; height: 100vh; box-sizing: border-box; }
+    /* === APP UI STYLES === */
+    :root { --primary: #1a73e8; --bg: #f3f4f6; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; gap: 20px; height: 100vh; box-sizing: border-box; }
     .panel { background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; display: flex; flex-direction: column; }
-    .left-panel { flex: 1; overflow-y: auto; max-width: 500px; }
+    .left-panel { flex: 1.2; overflow-y: auto; max-width: 550px; }
     .right-panel { flex: 2; overflow-y: hidden; display: flex; flex-direction: column; }
-    h2, h3 { margin-top: 0; color: #1a73e8; }
+    h2, h3 { margin-top: 0; color: var(--primary); }
     .form-group { margin-bottom: 15px; }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #5f6368; }
-    input[type="text"], input[type="date"], input[type="number"], input[type="file"], select, textarea { width: 100%; padding: 10px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px;}
-    input[type="file"] { padding: 6px; font-size: 12px; background: #f8f9fa; cursor: pointer; }
+    input[type="text"], input[type="date"], input[type="number"], input[type="file"], select, textarea { width: 100%; padding: 10px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
     .time-input { width: 70px !important; text-align: center; }
     textarea { resize: vertical; min-height: 250px; font-family: monospace; white-space: pre-wrap; }
     .row { display: flex; gap: 10px; }
     .row > div { flex: 1; }
-    .person-card { border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #fafafa; border-left: 4px solid #1a73e8; }
+    .person-card { border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #fafafa; border-left: 4px solid var(--primary); }
     button { color: white; border: none; padding: 10px 14px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s;}
     
-    .btn-primary { background: #1a73e8; font-size: 15px; padding: 12px 15px;}
+    .btn-primary { background: var(--primary); font-size: 15px; padding: 12px; width: 100%;}
     .btn-primary:hover { background: #1557b0; }
-    .btn-secondary { background: #f1f3f4; color: #1a73e8; border: 1px solid #dadce0; }
+    .btn-secondary { background: #f1f3f4; color: var(--primary); border: 1px solid #dadce0; }
     .btn-secondary:hover { background: #e8eaed; }
     .btn-success { background: #0f9d58; }
-    .btn-success:hover { background: #0b8043; }
     .btn-danger { background: #d93025; }
-    .btn-danger:hover { background: #b31412; }
     .btn-warning { background: #fbbc04; color: #202124; }
-    .btn-warning:hover { background: #f2a900; }
     
     .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;}
     .action-group { display: flex; gap: 8px; flex-wrap: wrap; }
     
-    #preview-container { flex: 1; border: 1px solid #dadce0; border-radius: 4px; background: #fff; overflow-y: auto; padding: 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); position: relative;}
-    #code-output { display: none; flex: 1; width: 100%; font-family: monospace; font-size: 13px; padding: 15px; border: 1px solid #dadce0; border-radius: 4px; background: #1e1e1e; color: #d4d4d4; resize: none; box-sizing: border-box; }
-    
-    .help-box { background: #e8f0fe; border-left: 4px solid #1a73e8; padding: 12px; font-size: 13px; color: #3c4043; margin-bottom: 15px; border-radius: 0 4px 4px 0; }
+    #preview-wrap { flex: 1; border: 1px solid #dadce0; border-radius: 4px; background: #fff; overflow-y: auto; padding: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+    #code-output { display: none; flex: 1; width: 100%; font-family: monospace; font-size: 13px; padding: 15px; background: #1e1e1e; color: #d4d4d4; }
+    .help-box { background: #e8f0fe; border-left: 4px solid var(--primary); padding: 12px; font-size: 13px; color: #3c4043; margin-bottom: 15px; }
     .help-box code { background: #fff; padding: 2px 6px; border-radius: 4px; color: #d93025; font-weight: bold; border: 1px solid #dadce0;}
 
-    /* Mobile Responsiveness */
-    @media (max-width: 800px) {
+    @media (max-width: 900px) {
         body { flex-direction: column; height: auto; padding: 10px; }
         .left-panel { max-width: 100%; flex: none; height: auto; }
-        .right-panel { flex: none; height: 80vh; }
-        .header-actions { flex-direction: column; align-items: flex-start; }
+        .right-panel { flex: none; min-height: 80vh; }
+    }
+
+    /* === SCOPED GMAIL PREVIEW STYLES === */
+    #gmail-render { font-family: 'Roboto', Helvetica, Arial, sans-serif; color: #202124; max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; }
+    #gmail-render .print-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-size: 12px; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 15px; }
+    #gmail-render .print-header-left { display: flex; align-items: center; gap: 15px; }
+    #gmail-render .print-header-center { flex-grow: 1; text-align: center; font-weight: bold; }
+    #gmail-render .subject-wrapper { display: flex; align-items: center; margin-bottom: 30px; margin-left: 60px; }
+    #gmail-render .subject-title { font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 22px; font-weight: 400; margin-right: 10px; }
+    #gmail-render .label-inbox { background-color: #ddd; color: #444; font-size: 11px; font-weight: 500; padding: 1px 5px; border-radius: 4px; margin-right: 5px; }
+    #gmail-render .email-item { margin-bottom: 35px; position: relative; }
+    #gmail-render .email-header { display: flex; align-items: flex-start; margin-bottom: 5px; }
+    #gmail-render .avatar { width: 40px; height: 40px; border-radius: 50%; color: white; text-align: center; line-height: 40px; font-size: 20px; font-weight: 500; margin-right: 15px; flex-shrink: 0; object-fit: cover;}
+    #gmail-render .meta-data { flex-grow: 1; }
+    #gmail-render .sender-line { display: flex; justify-content: space-between; align-items: baseline; }
+    #gmail-render .sender-name { font-weight: 700; font-size: 14px; }
+    #gmail-render .date-info { font-size: 12px; color: #5f6368; }
+    #gmail-render .details-box { border: 1px solid #dadce0; padding: 12px; border-radius: 4px; margin-top: 8px; margin-bottom: 12px; width: fit-content; min-width: 300px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-size: 13px; line-height: 1.6; }
+    #gmail-render .detail-row { display: flex; }
+    #gmail-render .detail-label { width: 80px; color: #5f6368; text-align: right; margin-right: 15px; }
+    #gmail-render .email-body { margin-left: 56px; font-size: 14px; line-height: 1.5; color: #222; width: 90%; word-wrap: break-word;}
+    #gmail-render .link { color: #1a73e8; text-decoration: none; font-weight: 500; word-break: break-all; }
+    #gmail-render .attachment-box { margin-top: 15px; padding: 10px 15px; border: 1px solid #dadce0; border-radius: 8px; display: inline-flex; align-items: center; gap: 10px; background: #f8f9fa; font-size: 13px; color: #3c4043; }
+    #gmail-render .action-buttons { margin-left: 56px; margin-top: 25px; display: flex; gap: 10px; }
+    #gmail-render .btn-reply { border: 1px solid #747775; border-radius: 20px; padding: 8px 24px; font-size: 14px; font-weight: 500; color: #444746; background: white; cursor: pointer; display: flex; align-items: center; }
+
+    /* HIDE EVERYTHING EXCEPT PREVIEW WHEN PRINTING PDF */
+    @media print {
+        body { background: white; padding: 0; display: block; }
+        .left-panel, .header-actions { display: none !important; }
+        .panel { box-shadow: none; border: none; padding: 0; margin: 0; }
+        #preview-wrap { border: none; box-shadow: none; padding: 0; overflow: visible; }
+        #gmail-render .action-buttons { display: none !important; }
     }
 </style>
 </head>
@@ -58,35 +83,28 @@
 
 <div class="panel left-panel">
     <h2>Thread Settings</h2>
-    
     <div class="form-group">
         <label>Email Subject</label>
         <input type="text" id="subject" value="Project Files & Discussion">
     </div>
     
     <div class="row">
-        <div class="form-group">
-            <label>Start Date</label>
-            <input type="date" id="start-date" value="2026-04-05">
-        </div>
+        <div class="form-group"><label>Start Date</label><input type="date" id="start-date" value="2026-04-05"></div>
         <div class="form-group">
             <label>Start Time</label>
             <div style="display: flex; gap: 5px; align-items: center;">
-                <input type="number" id="start-hour" class="time-input" min="1" max="12" value="10" placeholder="HH">
-                <span style="font-weight: bold; color: #5f6368;">:</span>
-                <input type="number" id="start-minute" class="time-input" min="0" max="59" value="00" placeholder="MM">
-                <select id="start-ampm" style="padding: 9px; cursor: pointer;">
-                    <option value="AM" selected>AM</option>
-                    <option value="PM">PM</option>
-                </select>
+                <input type="number" id="start-hour" class="time-input" min="1" max="12" value="10">
+                <span style="font-weight: bold;">:</span>
+                <input type="number" id="start-minute" class="time-input" min="0" max="59" value="00">
+                <select id="start-ampm" style="padding: 9px;"><option value="AM" selected>AM</option><option value="PM">PM</option></select>
             </div>
         </div>
     </div>
 
-    <div class="person-card" style="border-left-color: #e91e63;">
+    <div class="person-card" style="border-left-color: #1a73e8;">
         <h3>Person 1</h3>
         <div class="row">
-            <div class="form-group"><label>Exact Name</label><input type="text" id="p1-name" value="Dr. Bob Nelson"></div>
+            <div class="form-group"><label>Name in Script</label><input type="text" id="p1-name" value="Dr. Bob Nelson"></div>
             <div class="form-group"><label>Email</label><input type="text" id="p1-email" value="bobrewards1001@gmail.com"></div>
             <div class="form-group" style="flex: 0.3;"><label>Color</label><input type="color" id="p1-color" value="#1a73e8" style="height:40px; padding:2px;"></div>
         </div>
@@ -97,10 +115,10 @@
         </div>
     </div>
 
-    <div class="person-card">
+    <div class="person-card" style="border-left-color: #e91e63;">
         <h3>Person 2</h3>
         <div class="row">
-            <div class="form-group"><label>Exact Name</label><input type="text" id="p2-name" value="Omoleye Favour"></div>
+            <div class="form-group"><label>Name in Script</label><input type="text" id="p2-name" value="Omoleye Favour"></div>
             <div class="form-group"><label>Email</label><input type="text" id="p2-email" value="omoleyefavour@gmail.com"></div>
             <div class="form-group" style="flex: 0.3;"><label>Color</label><input type="color" id="p2-color" value="#e91e63" style="height:40px; padding:2px;"></div>
         </div>
@@ -116,14 +134,9 @@
         <b>Attachments:</b> <code>[FILE: PDF | contract.pdf]</code><br>
         <b>Images:</b> <code>[IMAGE: photo.jpg]</code>
     </div>
-    <textarea id="chat-script" placeholder="Dr. Bob Nelson:
-Here are the files you requested.
-[FILE: PDF | Project_Brief.pdf]
-
-Omoleye Favour:
-Got them, thanks!"></textarea>
+    <textarea id="chat-script" placeholder="Paste conversation here..."></textarea>
     
-    <button type="button" class="btn-primary" onclick="generate()" style="margin-top: 20px; width: 100%;">Generate & Preview</button>
+    <button type="button" class="btn-primary" onclick="generate()">Generate & Preview</button>
 </div>
 
 <div class="panel right-panel">
@@ -133,13 +146,17 @@ Got them, thanks!"></textarea>
             <button id="btn-code" onclick="toggleView('code')" class="btn-secondary">Raw HTML Code</button>
         </div>
         <div class="action-group">
-            <button onclick="downloadPDF()" id="btn-download-pdf" class="btn-danger">📥 Save as PDF</button>
+            <button onclick="window.print()" class="btn-danger">📥 Save as PDF</button>
             <button onclick="downloadImage()" id="btn-download-img" class="btn-warning">🖼️ Save as Image</button>
             <button onclick="copyCode()" class="btn-success">📋 Copy HTML</button>
         </div>
     </div>
     
-    <div id="preview-container"></div>
+    <div id="preview-wrap">
+        <div id="gmail-render">
+            <p style="color:#888; text-align:center; margin-top:50px;">Fill out the details on the left and click Generate.</p>
+        </div>
+    </div>
     <textarea id="code-output" readonly></textarea>
 </div>
 
@@ -150,9 +167,7 @@ Got them, thanks!"></textarea>
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(readerEvent) {
-                    document.getElementById(hiddenId).value = readerEvent.target.result;
-                }
+                reader.onload = function(evt) { document.getElementById(hiddenId).value = evt.target.result; }
                 reader.readAsDataURL(file);
             } else {
                 document.getElementById(hiddenId).value = '';
@@ -165,14 +180,14 @@ Got them, thanks!"></textarea>
     // --- UI Toggles ---
     function toggleView(view) {
         if(view === 'preview') {
-            document.getElementById('preview-container').style.display = 'block';
+            document.getElementById('preview-wrap').style.display = 'block';
             document.getElementById('code-output').style.display = 'none';
             document.getElementById('btn-preview').className = '';
             document.getElementById('btn-preview').style.background = '#1a73e8';
             document.getElementById('btn-preview').style.color = '#fff';
             document.getElementById('btn-code').className = 'btn-secondary';
         } else {
-            document.getElementById('preview-container').style.display = 'none';
+            document.getElementById('preview-wrap').style.display = 'none';
             document.getElementById('code-output').style.display = 'block';
             document.getElementById('btn-preview').className = 'btn-secondary';
             document.getElementById('btn-preview').style.background = '';
@@ -183,16 +198,12 @@ Got them, thanks!"></textarea>
         }
     }
 
-    function formatDateForPrint(dateObj) {
-        return `${dateObj.getMonth()+1}/${dateObj.getDate()}/${dateObj.getFullYear().toString().substr(-2)}, ${dateObj.toLocaleTimeString('en-US', {hour: 'numeric', minute:'2-digit'})}`;
-    }
-
     function formatTimeForEmail(dateObj) {
         return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + 
                ", " + dateObj.toLocaleTimeString('en-US', {hour: 'numeric', minute:'2-digit'});
     }
 
-    // --- Core HTML Generation ---
+    // --- Core Generation ---
     function generate() {
         const subject = document.getElementById('subject').value || "Project Discussion";
         
@@ -204,295 +215,125 @@ Got them, thanks!"></textarea>
         if (ampm === 'PM' && hr !== 12) hr += 12;
         if (ampm === 'AM' && hr === 12) hr = 0;
         
-        let hrStr = hr.toString().padStart(2, '0');
-        let minStr = min.toString().padStart(2, '0');
-
-        let currentDate = new Date(`${startDateStr}T${hrStr}:${minStr}:00`);
+        let currentDate = new Date(`${startDateStr}T${hr.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:00`);
         if(isNaN(currentDate.getTime())) currentDate = new Date();
         
         const p1 = {
-            name: document.getElementById('p1-name').value.trim(),
-            email: document.getElementById('p1-email').value.trim(),
-            color: document.getElementById('p1-color').value,
-            initial: document.getElementById('p1-name').value.trim().charAt(0).toUpperCase(),
-            avatarBase64: document.getElementById('p1-avatar-base64').value
+            name: document.getElementById('p1-name').value.trim(), email: document.getElementById('p1-email').value.trim(),
+            color: document.getElementById('p1-color').value, initial: document.getElementById('p1-name').value.trim().charAt(0).toUpperCase(),
+            avatar: document.getElementById('p1-avatar-base64').value
         };
-        
         const p2 = {
-            name: document.getElementById('p2-name').value.trim(),
-            email: document.getElementById('p2-email').value.trim(),
-            color: document.getElementById('p2-color').value,
-            initial: document.getElementById('p2-name').value.trim().charAt(0).toUpperCase(),
-            avatarBase64: document.getElementById('p2-avatar-base64').value
+            name: document.getElementById('p2-name').value.trim(), email: document.getElementById('p2-email').value.trim(),
+            color: document.getElementById('p2-color').value, initial: document.getElementById('p2-name').value.trim().charAt(0).toUpperCase(),
+            avatar: document.getElementById('p2-avatar-base64').value
         };
 
-        const scriptText = document.getElementById('chat-script').value;
-        const lines = scriptText.split('\n');
-        
-        let messages = [];
-        let currentMsg = null;
+        const lines = document.getElementById('chat-script').value.split('\n');
+        let messages = [], currentMsg = null;
 
-        const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const p1Regex = new RegExp(`^${escapeRegExp(p1.name)}(?:\\s*\\(.*?\\))?:\\s*`, 'i');
-        const p2Regex = new RegExp(`^${escapeRegExp(p2.name)}(?:\\s*\\(.*?\\))?:\\s*`, 'i');
+        const esc = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const p1Regex = new RegExp(`^${esc(p1.name)}(?:\\s*\\(.*?\\))?:\\s*`, 'i');
+        const p2Regex = new RegExp(`^${esc(p2.name)}(?:\\s*\\(.*?\\))?:\\s*`, 'i');
 
         for(let line of lines) {
-            let isP1 = p1Regex.test(line);
-            let isP2 = p2Regex.test(line);
-
-            if(!isP1 && line.trim().toLowerCase() === p1.name.toLowerCase() + ":") isP1 = true;
-            if(!isP2 && line.trim().toLowerCase() === p2.name.toLowerCase() + ":") isP2 = true;
-            if(!isP1 && line.trim().toLowerCase() === p1.name.toLowerCase()) isP1 = true;
-            if(!isP2 && line.trim().toLowerCase() === p2.name.toLowerCase()) isP2 = true;
+            let isP1 = p1Regex.test(line) || (!p1Regex.test(line) && (line.trim().toLowerCase() === p1.name.toLowerCase() + ":" || line.trim().toLowerCase() === p1.name.toLowerCase()));
+            let isP2 = p2Regex.test(line) || (!p2Regex.test(line) && (line.trim().toLowerCase() === p2.name.toLowerCase() + ":" || line.trim().toLowerCase() === p2.name.toLowerCase()));
 
             if(isP1 || isP2) {
                 if(currentMsg) messages.push(currentMsg);
                 currentMsg = { sender: isP1 ? p1 : p2, receiver: isP1 ? p2 : p1, body: "" };
                 let textPart = line.replace(isP1 ? p1Regex : p2Regex, '').trim();
                 if (textPart) currentMsg.body += textPart + "<br><br>";
-            } else {
-                if(currentMsg) {
-                    if (line.match(/^[-—]+.*[-—]+$/)) continue;
-                    if(line.trim() !== '') {
-                        let processedLine = line;
-                        processedLine = processedLine.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" class="link" target="_blank">$1</a>');
-                        processedLine = processedLine.replace(/\[FILE:\s*(.*?)\s*\|\s*(.*?)\]/gi, (match, type, filename) => {
-                            let tagColor = '#d93025'; 
-                            if(['IMG', 'JPG', 'PNG', 'JPEG'].includes(type.toUpperCase())) tagColor = '#1a73e8';
-                            if(['DOC', 'DOCX', 'XLS', 'XLSX'].includes(type.toUpperCase())) tagColor = '#188038';
-                            return `<div class="attachment-box"><span style="color:${tagColor}; font-weight:bold;">${type.toUpperCase()}</span> ${filename}</div>`;
-                        });
-                        processedLine = processedLine.replace(/\[IMAGE:\s*(.*?)\]/gi, '<br><img src="$1" alt="Attached Image" style="max-width: 100%; max-height: 350px; margin-top: 10px; border-radius: 8px; border: 1px solid #dadce0;">');
-                        currentMsg.body += processedLine + "<br><br>";
-                    }
+            } else if(currentMsg) {
+                if (line.match(/^[-—]+.*[-—]+$/)) continue; // skip dividers
+                if(line.trim() !== '') {
+                    let pLine = line.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" class="link" target="_blank">$1</a>');
+                    pLine = pLine.replace(/\[FILE:\s*(.*?)\s*\|\s*(.*?)\]/gi, (m, t, f) => {
+                        let c = '#d93025'; if(['IMG','JPG','PNG'].includes(t.toUpperCase())) c='#1a73e8'; if(['DOC','XLS'].includes(t.toUpperCase())) c='#188038';
+                        return `<div class="attachment-box"><span style="color:${c}; font-weight:bold;">${t.toUpperCase()}</span> ${f}</div>`;
+                    });
+                    pLine = pLine.replace(/\[IMAGE:\s*(.*?)\]/gi, '<br><img src="$1" style="max-width: 100%; max-height: 350px; border-radius: 8px; border: 1px solid #dadce0;">');
+                    currentMsg.body += pLine + "<br><br>";
                 }
             }
         }
         if(currentMsg) messages.push(currentMsg);
 
-        if(messages.length === 0) {
-            alert("No messages detected. Make sure the names in the script exactly match the names in the settings above.");
-            return;
-        }
+        if(messages.length === 0) return alert("No messages detected. Ensure script names exactly match settings.");
 
-        let emailsHTML = '';
-        messages.forEach((msg, index) => {
-            if(index > 0) currentDate.setMinutes(currentDate.getMinutes() + Math.floor(Math.random() * 30) + 15);
-            let timeString = formatTimeForEmail(currentDate);
-            const isLast = (index === messages.length - 1);
-            const actionButtons = isLast ? `<div class="action-buttons"><button class="btn-reply"><span style="margin-right:8px; font-size:16px;">&#8617;</span> Reply</button><button class="btn-reply"><span style="margin-right:8px; font-size:16px;">&#8594;</span> Forward</button></div>` : '';
-            let cleanBody = msg.body.replace(/(<br>)+$/g, '');
-            let avatarRender = msg.sender.avatarBase64 ? `<img src="${msg.sender.avatarBase64}" class="avatar" style="object-fit: cover; background-color: #fff;" alt="${msg.sender.initial}">` : `<div class="avatar" style="background-color: ${msg.sender.color};">${msg.sender.initial}</div>`;
+        let innerHTML = '';
+        messages.forEach((msg, i) => {
+            if(i > 0) currentDate.setMinutes(currentDate.getMinutes() + Math.floor(Math.random() * 30) + 15);
+            let timeStr = formatTimeForEmail(currentDate);
+            let btn = (i === messages.length - 1) ? `<div class="action-buttons" data-html2canvas-ignore><button class="btn-reply"><span>&#8617;</span> Reply</button><button class="btn-reply"><span>&#8594;</span> Forward</button></div>` : '';
+            let avt = msg.sender.avatar ? `<img src="${msg.sender.avatar}" class="avatar">` : `<div class="avatar" style="background-color: ${msg.sender.color};">${msg.sender.initial}</div>`;
 
-            emailsHTML += `
+            innerHTML += `
     <div class="email-item">
-        <div class="email-header">
-            ${avatarRender}
+        <div class="email-header">${avt}
             <div class="meta-data">
-                <div class="sender-line">
-                    <div><span class="sender-name">${msg.sender.name}</span></div>
-                    <div class="date-info">${timeString} <span class="icon-star">★</span></div>
-                </div>
+                <div class="sender-line"><div><span class="sender-name">${msg.sender.name}</span></div><div class="date-info">${timeStr} <span style="color:#dadce0;">★</span></div></div>
                 <div class="details-box">
                     <div class="detail-row"><span class="detail-label">from:</span><span class="detail-value"><strong>${msg.sender.name}</strong> &lt;${msg.sender.email}&gt;</span></div>
                     <div class="detail-row"><span class="detail-label">to:</span><span class="detail-value"><strong>${msg.receiver.name}</strong> &lt;${msg.receiver.email}&gt;</span></div>
-                    <div class="detail-row"><span class="detail-label">date:</span><span class="detail-value">${timeString}</span></div>
-                    <div class="detail-row"><span class="detail-label">subject:</span><span class="detail-value">${index === 0 ? subject : 'Re: ' + subject}</span></div>
+                    <div class="detail-row"><span class="detail-label">date:</span><span class="detail-value">${timeStr}</span></div>
+                    <div class="detail-row"><span class="detail-label">subject:</span><span class="detail-value">${i===0?subject:'Re: '+subject}</span></div>
                     <div class="detail-row"><span class="detail-label">mailed-by:</span><span class="detail-value">${msg.sender.email.split('@')[1]}</span></div>
-                    <div class="detail-row"><span class="detail-label">security:</span><span class="detail-value"><span style="color:#188038">Standard encryption (TLS)</span></span></div>
                 </div>
             </div>
         </div>
-        <div class="email-body">${cleanBody}</div>
-        ${actionButtons}
+        <div class="email-body">${msg.body.replace(/(<br>)+$/g, '')}</div>
+        ${btn}
     </div>`;
         });
 
         currentDate.setHours(currentDate.getHours() + 2);
-        let printDateStr = formatDateForPrint(currentDate);
-        let lastSender = messages[messages.length - 1].sender;
-
-        const finalHTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Gmail - ${subject}</title>
-<style>
-    body { background-color: #ffffff; font-family: 'Roboto', Helvetica, Arial, sans-serif; margin: 0; padding: 20px 40px; color: #202124; }
-    .main-container { max-width: 900px; margin: 0 auto; }
-    .print-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-size: 12px; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 15px; }
-    .print-header-left { display: flex; align-items: center; gap: 15px; }
-    .print-header-center { flex-grow: 1; text-align: center; font-weight: bold; }
-    .subject-wrapper { display: flex; align-items: center; margin-bottom: 30px; margin-left: 60px; }
-    .subject-title { font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 22px; font-weight: 400; color: #202124; margin-right: 10px; }
-    .label-inbox { background-color: #ddd; color: #444; font-size: 11px; font-weight: 500; padding: 1px 5px; border-radius: 4px; margin-right: 5px; display: inline-block; vertical-align: middle; }
-    .email-item { margin-bottom: 35px; position: relative; }
-    .email-header { display: flex; align-items: flex-start; margin-bottom: 5px; }
-    .avatar { width: 40px; height: 40px; border-radius: 50%; color: white; text-align: center; line-height: 40px; font-size: 20px; font-weight: 500; margin-right: 15px; flex-shrink: 0; }
-    .meta-data { flex-grow: 1; }
-    .sender-line { display: flex; justify-content: space-between; align-items: baseline; }
-    .sender-name { font-weight: 700; font-size: 14px; color: #202124; }
-    .date-info { font-size: 12px; color: #5f6368; }
-    .details-box { border: 1px solid #dadce0; background-color: #fff; padding: 12px; border-radius: 4px; margin-top: 8px; margin-bottom: 12px; width: fit-content; min-width: 450px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-size: 13px; line-height: 1.6; display: block; }
-    .detail-row { display: flex; }
-    .detail-label { width: 80px; color: #5f6368; text-align: right; margin-right: 15px; }
-    .detail-value { color: #202124; }
-    .email-body { margin-left: 56px; font-size: 14px; line-height: 1.5; color: #222; width: 90%; }
-    .link { color: #1a73e8; text-decoration: none; font-weight: 500; word-break: break-all; }
-    .action-buttons { margin-left: 56px; margin-top: 25px; display: flex; gap: 10px; }
-    .btn-reply { border: 1px solid #747775; border-radius: 20px; padding: 8px 24px; font-size: 14px; font-weight: 500; color: #444746; background: white; cursor: pointer; display: flex; align-items: center; }
-    .attachment-box { margin-top: 15px; padding: 10px 15px; border: 1px solid #dadce0; border-radius: 8px; display: inline-flex; align-items: center; gap: 10px; background: #f8f9fa; font-size: 13px; color: #3c4043; }
-</style>
-</head>
-<body>
-<div class="main-container" id="capture-area">
+        let printDateStr = `${currentDate.getMonth()+1}/${currentDate.getDate()}/${currentDate.getFullYear().toString().substr(-2)}, ${currentDate.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
+        
+        let headerHTML = `
     <div class="print-header">
-        <div class="print-header-left">
-            <span>${printDateStr}</span>
-            <img src="images (1).png" alt="Gmail Logo" style="height: 32px;">
-            <span style="font-size: 20px; font-weight: 500; font-family: 'Google Sans', sans-serif; color: #5f6368; margin-left: 5px;">Gmail</span>
-        </div>
+        <div class="print-header-left"><span>${printDateStr}</span><img src="images (1).png" alt="Gmail" style="height: 32px;" data-html2canvas-ignore><span style="font-size: 20px; font-weight: 500; color: #5f6368; margin-left: 5px;">Gmail</span></div>
         <div class="print-header-center">Gmail - ${subject}</div>
-        <div><strong>${lastSender.name} &lt;${lastSender.email}&gt;</strong></div>
+        <div><strong>${messages[messages.length-1].sender.name} &lt;${messages[messages.length-1].sender.email}&gt;</strong></div>
     </div>
-    <div class="subject-wrapper">
-        <div class="subject-title">${subject}</div>
-        <div class="label-inbox">Inbox</div><div class="label-inbox">x</div>
-    </div>
-${emailsHTML}
-</div>
-</body>
-</html>`;
+    <div class="subject-wrapper"><div class="subject-title">${subject}</div><div class="label-inbox">Inbox</div><div class="label-inbox">x</div></div>`;
 
-        document.getElementById('code-output').value = finalHTML;
+        // Inject into DOM
+        document.getElementById('gmail-render').innerHTML = headerHTML + innerHTML;
         
-        const previewContainer = document.getElementById('preview-container');
-        previewContainer.innerHTML = '';
-        const iframe = document.createElement('iframe');
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        previewContainer.appendChild(iframe);
+        // Create full HTML for copying
+        let styles = document.querySelector('style').innerHTML.replace(/#gmail-render /g, '').replace(/#gmail-render/g, 'body');
+        document.getElementById('code-output').value = `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<title>${subject}</title>\n<style>\n${styles}\n</style>\n</head>\n<body>\n<div class="main-container">\n${headerHTML}\n${innerHTML}\n</div>\n</body>\n</html>`;
         
-        iframe.contentWindow.document.open();
-        iframe.contentWindow.document.write(finalHTML);
-        iframe.contentWindow.document.close();
         toggleView('preview');
     }
 
     function copyCode() {
-        const codeText = document.getElementById('code-output').value;
-        if (!codeText) return alert("Generate the HTML first!");
-        navigator.clipboard.writeText(codeText).then(() => alert("HTML code copied to clipboard!"));
+        const txt = document.getElementById('code-output').value;
+        if (!txt) return alert("Generate first!");
+        navigator.clipboard.writeText(txt).then(() => alert("Copied!"));
     }
 
-    // --- Powerful Cross-Device Downloads ---
-    
-    // Prepare Iframe: Expands the hidden iframe to its full height so nothing gets cut off on mobile
-    function prepareIframeForCapture() {
-        const iframe = document.querySelector('#preview-container iframe');
-        if (!iframe) return null;
-        const doc = iframe.contentDocument;
-        
-        // Hide buttons for cleaner screenshots/PDFs
-        doc.querySelectorAll('.action-buttons').forEach(el => el.style.display = 'none');
-        
-        // Force iframe to expand fully
-        const container = document.getElementById('preview-container');
-        const ogOverflow = container.style.overflowY;
-        container.style.overflowY = 'visible';
-        
-        const ogHeight = iframe.style.height;
-        iframe.style.height = doc.documentElement.scrollHeight + 50 + 'px'; // add buffer
-
-        return { iframe, doc, container, ogOverflow, ogHeight };
-    }
-
-    function restoreIframeAfterCapture(state) {
-        state.iframe.style.height = state.ogHeight;
-        state.container.style.overflowY = state.ogOverflow;
-        state.doc.querySelectorAll('.action-buttons').forEach(el => el.style.display = 'flex');
-    }
-
-    // PDF Download using html2pdf.js
-    async function downloadPDF() {
-        const state = prepareIframeForCapture();
-        if (!state) return alert("Generate the preview first!");
-        
-        const btn = document.getElementById('btn-download-pdf');
-        const ogText = btn.innerText;
-        btn.innerText = "⏳ Processing...";
-        btn.disabled = true;
-
-        let subject = document.getElementById('subject').value || "chat";
-        let safeFilename = subject.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
-
-        const opt = {
-            margin:       [10, 10, 10, 10],
-            filename:     safeFilename,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        try {
-            await html2pdf().set(opt).from(state.doc.body).save();
-        } catch (e) {
-            console.error(e);
-            alert("PDF generation failed on this device.");
-        }
-
-        restoreIframeAfterCapture(state);
-        btn.innerText = ogText;
-        btn.disabled = false;
-    }
-
-    // Image Download using html2canvas and Blob logic for mobile compatibility
-    async function downloadImage() {
-        const state = prepareIframeForCapture();
-        if (!state) return alert("Generate the preview first!");
+    function downloadImage() {
+        const target = document.getElementById('gmail-render');
+        if (target.innerHTML.includes('Fill out the details')) return alert("Generate first!");
         
         const btn = document.getElementById('btn-download-img');
-        const ogText = btn.innerText;
-        btn.innerText = "⏳ Processing...";
-        btn.disabled = true;
+        btn.innerText = "⏳ Saving..."; btn.disabled = true;
 
-        try {
-            const canvas = await html2canvas(state.doc.body, { 
-                scale: window.devicePixelRatio > 1 ? 2 : 1, // High res for mobile
-                useCORS: true,
-                backgroundColor: "#ffffff",
-                logging: false
-            });
-
-            // Convert canvas to Blob (More reliable than Base64 strings on Mobile Safari)
+        html2canvas(target, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
             canvas.toBlob(blob => {
-                const url = window.URL.createObjectURL(blob);
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                
-                let subject = document.getElementById('subject').value || "chat";
-                a.download = subject.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.png';
-                
-                document.body.appendChild(a);
-                a.click();
-                
-                // Cleanup
-                setTimeout(() => {
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                }, 100);
-            }, 'image/png');
-
-        } catch (e) {
-            console.error(e);
-            alert("Image generation failed on this device. Try 'Save as PDF' instead.");
-        }
-
-        restoreIframeAfterCapture(state);
-        btn.innerText = ogText;
-        btn.disabled = false;
+                a.href = url; a.download = 'gmail-thread.png';
+                document.body.appendChild(a); a.click(); a.remove();
+                URL.revokeObjectURL(url);
+                btn.innerText = "🖼️ Save as Image"; btn.disabled = false;
+            });
+        }).catch(err => {
+            alert("Error saving image."); btn.innerText = "🖼️ Save as Image"; btn.disabled = false;
+        });
     }
 </script>
 </body>
